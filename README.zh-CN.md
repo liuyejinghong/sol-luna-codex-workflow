@@ -13,9 +13,19 @@ Sol 主线程：目标 -> 边界 -> 执行包 -> 验收 -> 整合
 Luna Max：检查 / 分析 / 实现 / 排查 / 回传
 ```
 
-这是一套社区工作流，不是 OpenAI 官方预设。模型可用性、实际路由和最终权限会受到 Codex 版本与账号影响。仓库里的自定义 Agent 格式已于 2026-08-02 对照官方 [Codex 子代理文档](https://developers.openai.com/codex/agent-configuration/subagents)和配置 Schema 检查，并使用 Codex App `26.727.51351` 及其内置 CLI `0.146.0-alpha.9.2` 完成解析和加载验证；安装后仍应通过一次真实委派核对实际模型路由。
+## 编排逻辑放在哪里
 
-这个安装包可以独立工作，不依赖 `gpt-5-6-best-practice` 或其他通用模型档位路由 Skill。
+任务拆解逻辑属于 Skill，不属于 worker 配置。三层配置各自只承担一种职责：
+
+| 层级 | 职责 |
+|---|---|
+| [`personalization.md`](personalization.md) | 在 Codex App 中启用这套偏好，并告诉 Sol 何时进入该工作流 |
+| [`sol-luna-workflow`](skills/sol-luna-workflow/SKILL.md) | 定义 Sol 的任务拆解判断、路由、执行包、写入隔离、验证、验收和整合流程 |
+| [`luna-worker.toml`](agents/luna-worker.toml) | 固定 Luna Max 执行通道，并禁止 worker 重新定义任务或自行扩大范围 |
+
+Sol 先锁定整体目标、不可变事实、验收标准和授权边界，把模糊判断与跨任务决策留在主线程。只有能够独立完成、客观验收、写入范围不重叠的结果单元，才会被封装成执行包交给 Luna。Luna 执行后，Sol 再按照整体任务合同检查证据、处理冲突并整合结果。
+
+这是一套社区工作流，不是 OpenAI 官方预设。模型可用性、实际路由和最终权限会受到 Codex 版本与账号影响。仓库里的自定义 Agent 格式已于 2026-08-02 对照官方 [Codex 子代理文档](https://developers.openai.com/codex/agent-configuration/subagents)和配置 Schema 检查，并使用 Codex App `26.727.51351` 及其内置 CLI `0.146.0-alpha.9.2` 完成解析和加载验证；安装后仍应通过一次真实委派核对实际模型路由。
 
 ## 为什么这样编排
 
@@ -50,7 +60,7 @@ Luna Max：检查 / 分析 / 实现 / 排查 / 回传
 | 路径 | 用途 |
 |---|---|
 | [`agents/luna-worker.toml`](agents/luna-worker.toml) | 具名的 Luna Max worker 配置 |
-| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | 委派、拆包和验证策略 |
+| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | Sol 的拆解、委派、验收、整合和验证策略 |
 | [`personalization.md`](personalization.md) | 供人工粘贴到 Codex App 的中英文个性化提示词 |
 | [`scripts/install.sh`](scripts/install.sh) | 遇到冲突不覆盖的安全安装脚本 |
 | [`AGENTS.md`](AGENTS.md) | Agent 读取这个仓库时遵循的部署合同 |
@@ -91,8 +101,6 @@ bash scripts/install.sh
 `personalization.md` 只是可复制的文档，不是会自动生效的配置。把它放在 GitHub 上，不等于已经粘贴进 Codex App。OpenAI 把 Custom Instructions 定义为通过设置界面管理的账号偏好，而 `AGENTS.md` 属于 Codex 每次运行时读取的指令链。两者目的有重叠，但不是同一个配置入口。可参考官方的 [Custom Instructions 说明](https://help.openai.com/en/articles/8096356-chat-preferences-for-chatgpt)和 [Codex `AGENTS.md` 指南](https://developers.openai.com/codex/guides/agents-md)。
 
 把相同内容写入 `~/.codex/AGENTS.md`，可以为 Codex 会话提供近似的全局规则，但它不完全等价于 App 个性化提示词，而且项目级指令仍可能覆盖它。安装脚本因此不会碰这两个入口。若目标是让 Codex App 的账号级个性化生效，目前仍需要人工粘贴。
-
-如果旧版个性化提示词仍然提到 `gpt-5-6-best-practice`，请用 [`personalization.md`](personalization.md) 中的当前版本完整替换。安装脚本会保留其他 Skill，不会自动删除旧副本。
 
 ## Luna 执行包
 

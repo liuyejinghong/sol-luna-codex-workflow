@@ -13,9 +13,19 @@ Sol lead: objective -> boundaries -> task packet -> review -> integration
 Luna Max worker: inspect / analyze / implement / diagnose / report
 ```
 
-This is a community workflow, not an official OpenAI preset. Model availability, routing, and effective permissions vary by Codex version and account. The checked-in custom-agent shape was compared with the official [Codex subagent documentation](https://developers.openai.com/codex/agent-configuration/subagents) and configuration schema on 2026-08-02, then parsed and loaded with Codex App `26.727.51351` and its bundled CLI `0.146.0-alpha.9.2`. The effective model route still needs one runtime check after installation.
+## Where the orchestration lives
 
-The package is self-contained. It does not depend on `gpt-5-6-best-practice` or any other general model-tier routing skill.
+The decomposition logic belongs to the Skill, not the worker profile. Each layer has one responsibility:
+
+| Layer | Responsibility |
+|---|---|
+| [`personalization.md`](personalization.md) | Activates the preference in Codex App and tells Sol when to use the workflow |
+| [`sol-luna-workflow`](skills/sol-luna-workflow/SKILL.md) | Defines Sol's decomposition test, routing decision, worker packet, write isolation, verification, review, and integration |
+| [`luna-worker.toml`](agents/luna-worker.toml) | Pins the Luna Max execution lane and prevents the worker from redefining or expanding its assignment |
+
+Sol first locks the parent objective, invariant facts, acceptance criteria, and authorization boundary. It keeps ambiguous or cross-cutting decisions, then creates worker units only around outcomes that are independently completable, objectively reviewable, and owned by non-overlapping paths. Luna executes those units; Sol compares the returned evidence with the parent contract and integrates the result.
+
+This is a community workflow, not an official OpenAI preset. Model availability, routing, and effective permissions vary by Codex version and account. The checked-in custom-agent shape was compared with the official [Codex subagent documentation](https://developers.openai.com/codex/agent-configuration/subagents) and configuration schema on 2026-08-02, then parsed and loaded with Codex App `26.727.51351` and its bundled CLI `0.146.0-alpha.9.2`. The effective model route still needs one runtime check after installation.
 
 ## Why this orchestration
 
@@ -50,7 +60,7 @@ The default verification contract is one focused contract check plus one real-pa
 | Path | Purpose |
 |---|---|
 | [`agents/luna-worker.toml`](agents/luna-worker.toml) | Named Luna Max worker profile |
-| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | Delegation and verification policy |
+| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | Sol decomposition, delegation, review, integration, and verification policy |
 | [`personalization.md`](personalization.md) | English and Chinese text to paste into Codex App personalization |
 | [`scripts/install.sh`](scripts/install.sh) | Conflict-safe installer for the agent and skill |
 | [`AGENTS.md`](AGENTS.md) | Deployment contract for an Agent reading this repository |
@@ -92,8 +102,6 @@ Then open Codex App **Settings → Personalization → Custom Instructions** and
 `personalization.md` is documentation, not an active setting. Keeping it in GitHub does not make it equivalent to text pasted into Codex App. OpenAI describes Custom Instructions as an account/UI preference applied through Settings, while `AGENTS.md` belongs to the Codex instruction chain loaded for a run. They overlap in purpose but are different configuration surfaces. See the official [Custom Instructions documentation](https://help.openai.com/en/articles/8096356-chat-preferences-for-chatgpt) and [Codex `AGENTS.md` guide](https://developers.openai.com/codex/guides/agents-md).
 
 It is possible to place similar text in `~/.codex/AGENTS.md` for Codex-only sessions, but that is not exactly equivalent to App personalization and project instructions can override it. The installer intentionally leaves both surfaces untouched. Manual paste is therefore required when account-wide App personalization is the intended behavior.
-
-If an older Custom Instructions block still mentions `gpt-5-6-best-practice`, replace it with the current block from [`personalization.md`](personalization.md). The installer preserves unrelated skills and does not remove legacy copies automatically.
 
 ## Delegation packet
 

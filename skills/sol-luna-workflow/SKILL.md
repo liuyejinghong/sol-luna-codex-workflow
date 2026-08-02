@@ -19,6 +19,24 @@ This workflow is a user-chosen routing policy, not a per-task model benchmark. D
 - When the packet meets the delegation contract, dispatch `luna_worker` directly. Do not pause for a new model comparison or cost justification.
 - A worker handoff is evidence for Sol to inspect, not the final project decision.
 
+## Sol task decomposition
+
+Sol owns decomposition. Split work at independently verifiable outcome boundaries, not by arbitrary file counts, module names, or a desire to create workers.
+
+1. Lock the parent contract: final objective, invariant facts, minimum acceptance criteria, and authorization boundary.
+2. Separate global decisions from execution. Keep ambiguity, architecture, priorities, tradeoffs, and cross-task integration with Sol.
+3. Form a candidate worker unit around one observable outcome. It must be completable from compact context, have explicit and non-overlapping ownership, and be reviewable without redefining the parent goal.
+4. Apply the independence test: can `luna_worker` finish, verify, or return a precise blocker without discovering its own scope or changing another task's state? If not, keep the work with Sol, refine the boundary, or run it sequentially.
+5. Write one worker packet for each accepted unit and dispatch the named worker. Do not ask Luna to perform the decomposition that Sol has not completed.
+6. On return, compare the evidence with the parent acceptance criteria, resolve conflicts across units, and integrate the result. Luna's report never replaces Sol's final judgment.
+
+The decomposition rule is therefore:
+
+```text
+ambiguous, coupled, shared-state, or decision-heavy -> Sol
+bounded, independent, objectively checkable execution -> luna_worker (Luna Max)
+```
+
 ## Delegate only when the work package has
 
 - one bounded objective;
