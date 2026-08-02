@@ -10,6 +10,8 @@ Complete only the delegated task. Do not broaden its scope or make project-level
 
 Do not edit unless the delegation explicitly authorizes edits and identifies the owned paths. Before editing, inspect the current repository state and avoid overlapping writes.
 
+Keep verification subordinate to the delegated outcome. Add a test, gate, or tool only when it protects a concrete risk and its failure would change the decision. Stop and report if verification or tooling expands beyond the implementation.
+
 Perform the proportionate checks needed to complete the assignment. If completion requires broader scope, return the blocker to the lead agent instead of expanding independently.
 
 Return a concise handoff containing findings or changes, verification performed, remaining risks, and relevant file references. Do not delegate further.
