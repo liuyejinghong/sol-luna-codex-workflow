@@ -6,6 +6,8 @@ This repository is designed to be handed directly to a Codex Agent for installat
 
 Install the checked-in `luna_worker` custom agent and `sol-luna-workflow` skill for the current user while preserving every unrelated Codex setting.
 
+This package is self-contained. It does not depend on `gpt-5-6-best-practice` or another model-tier routing skill.
+
 ## Authorized writes
 
 The installation may create only these targets under the active Codex home:
@@ -19,7 +21,9 @@ Use `$CODEX_HOME` when it is set; otherwise use `$HOME/.codex`. Run `bash script
 
 ## Prohibited changes
 
-Do not edit or delete `config.toml`, other agents, other skills, global or project `AGENTS.md` files, Codex App personalization, or any unrelated content. Do not enable Fast mode unless the user explicitly asks for it.
+Do not edit or delete `config.toml`, other agents, other skills, global or project `AGENTS.md` files, Codex App personalization, or any unrelated content.
+
+Do not install or invoke `gpt-5-6-best-practice` as part of this workflow. If a legacy copy exists, report it without modifying it; removal requires separate user authorization.
 
 If either target already exists with different content, stop without writing either target. Show the exact conflicting path and ask the user how to proceed. Never overwrite a conflict automatically.
 

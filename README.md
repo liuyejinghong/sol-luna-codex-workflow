@@ -15,6 +15,8 @@ Luna Max worker: inspect / analyze / implement / diagnose / report
 
 This is a community workflow, not an official OpenAI preset. Model availability, routing, and effective permissions vary by Codex version and account. The checked-in custom-agent shape was compared with the official [Codex subagent documentation](https://developers.openai.com/codex/agent-configuration/subagents) and configuration schema on 2026-08-02, then parsed and loaded with Codex App `26.727.51351` and its bundled CLI `0.146.0-alpha.9.2`. The effective model route still needs one runtime check after installation.
 
+The package is self-contained. It does not depend on `gpt-5-6-best-practice` or any other general model-tier routing skill.
+
 ## Why this orchestration
 
 The lead and worker have different jobs. Sol retains the full objective and the ambiguous decisions that need broad context. Luna receives a compact packet with one objective, owned paths, non-goals, acceptance criteria, verification, and a stop condition. This reduces main-thread context pollution while preventing a smaller worker from silently redefining the problem.
@@ -24,6 +26,8 @@ The current [DeepSWE v1.1 cost leaderboard](https://deepswe.datacurve.ai/) illus
 [![DeepSWE v1.1 cost leaderboard showing Luna Max at 67% and $0.61 average cost](docs/assets/deepswe-v1.1-cost-leaderboard.png)](https://deepswe.datacurve.ai/)
 
 The low-cost worker lane has a tradeoff. Luna is less suitable for vague objectives, changing requirements, broad architectural judgment, or tasks whose real boundary must be discovered during execution. The [`sol-luna-workflow` skill](skills/sol-luna-workflow/SKILL.md) exists to make that tradeoff explicit: Sol converts ambiguity into a bounded worker packet, Luna executes it, and Sol checks and integrates the result.
+
+This is a chosen default topology, not a model-selection exercise repeated for every task. When a subtask satisfies the delegation contract, Sol can dispatch the named Luna Max worker without comparing Luna Medium, Terra, or another tier and without asking for fresh approval. The exceptions come from task structure: ambiguity, shared mutable state, overlapping writes, or authority that was never delegated.
 
 Parallelism is optional. It is useful only when contexts are independent and write ownership does not overlap. Sequential work, shared mutable state, architecture, final judgment, releases, and other externally consequential actions remain with Sol unless the user explicitly authorizes a narrower handoff.
 
@@ -89,6 +93,8 @@ Then open Codex App **Settings → Personalization → Custom Instructions** and
 
 It is possible to place similar text in `~/.codex/AGENTS.md` for Codex-only sessions, but that is not exactly equivalent to App personalization and project instructions can override it. The installer intentionally leaves both surfaces untouched. Manual paste is therefore required when account-wide App personalization is the intended behavior.
 
+If an older Custom Instructions block still mentions `gpt-5-6-best-practice`, replace it with the current block from [`personalization.md`](personalization.md). The installer preserves unrelated skills and does not remove legacy copies automatically.
+
 ## Delegation packet
 
 Sol sends only the facts necessary for the worker to finish:
@@ -105,16 +111,6 @@ Return format:
 ```
 
 If the task cannot be completed inside that packet, Luna reports the exact blocker instead of widening scope. Sol inspects the handoff and remains responsible for the project decision.
-
-## Optional Fast mode
-
-The default agent does not enable Fast mode. To prefer lower latency, add this to [`agents/luna-worker.toml`](agents/luna-worker.toml):
-
-```toml
-service_tier = "fast"
-```
-
-Fast is a latency choice. It can consume credits or carry a price premium and may not be available on every surface, so it should not be described as a guaranteed cost-saving setting.
 
 ## Verify once
 

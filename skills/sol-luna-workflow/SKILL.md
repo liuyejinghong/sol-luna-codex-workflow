@@ -1,11 +1,13 @@
 ---
 name: sol-luna-workflow
-description: Use when choosing GPT-5.6 Sol or Luna, reasoning effort, Fast mode, or subagents. Keeps Sol in the main thread, routes bounded independent work to Luna Max, and constrains verification by first principles.
+description: Use when a Sol main thread can delegate a clearly bounded, independently completable task to the named Luna Max worker. Defines the handoff, ownership, verification, and stop boundaries without re-running general model-tier selection.
 ---
 
 # Sol lead, Luna Max workers
 
 Use this skill as a small orchestration overlay. Explicit user instructions, permissions, project `AGENTS.md` files, and current verified facts remain authoritative.
+
+This workflow is a user-chosen routing policy, not a per-task model benchmark. Do not invoke another tier-routing skill, compare Luna Medium or Terra, or request fresh approval for the default topology each time an eligible task appears.
 
 ## Default topology
 
@@ -14,6 +16,7 @@ Use this skill as a small orchestration overlay. Explicit user instructions, per
 - Prefer the named `luna_worker` for clearly scoped code review, module analysis, independent implementation, focused test diagnosis, and other objectively checkable work.
 - Luna Max is the preferred worker lane for this workflow. Do not silently replace it with Luna Medium or another model.
 - Treat the observed cost/performance of Luna Max as a routing policy for bounded execution, not as a universal model-quality guarantee. Keep ambiguous judgment with Sol.
+- When the packet meets the delegation contract, dispatch `luna_worker` directly. Do not pause for a new model comparison or cost justification.
 - A worker handoff is evidence for Sol to inspect, not the final project decision.
 
 ## Delegate only when the work package has
@@ -73,8 +76,6 @@ If verification costs more than implementation, or two consecutive steps only re
 - Never let workers delegate further.
 - If two tasks need the same mutable files or state, run them sequentially.
 
-## Fast mode and route verification
+## Route integrity
 
-`service_tier = "fast"` is an optional latency tradeoff, not a guaranteed cost-saving setting. Do not claim savings without comparable evidence from the active product.
-
-After installing the custom agent, and after major Codex client changes, verify the effective worker model and effort from runtime metadata when the client exposes it. Prompt steering or a textual self-report is not proof that `gpt-5.6-luna` with `max` was actually used. If the route cannot be verified, describe it as intended rather than confirmed.
+Dispatch the named `luna_worker`, not a generic worker. Its custom-agent file pins `gpt-5.6-luna` with `max` effort. Verify that route once after installation and again only after a major Codex client change or observed routing mismatch. Prompt steering or a textual self-report is not proof of the effective route.

@@ -15,6 +15,8 @@ Luna Max：检查 / 分析 / 实现 / 排查 / 回传
 
 这是一套社区工作流，不是 OpenAI 官方预设。模型可用性、实际路由和最终权限会受到 Codex 版本与账号影响。仓库里的自定义 Agent 格式已于 2026-08-02 对照官方 [Codex 子代理文档](https://developers.openai.com/codex/agent-configuration/subagents)和配置 Schema 检查，并使用 Codex App `26.727.51351` 及其内置 CLI `0.146.0-alpha.9.2` 完成解析和加载验证；安装后仍应通过一次真实委派核对实际模型路由。
 
+这个安装包可以独立工作，不依赖 `gpt-5-6-best-practice` 或其他通用模型档位路由 Skill。
+
 ## 为什么这样编排
 
 主代理和 worker 承担的是两种不同工作。Sol 保留完整目标，以及需要广泛上下文才能判断的模糊问题。Luna 接收一个压缩后的执行包，其中只有一个目标、拥有的文件、明确的不做事项、验收标准、验证方式和停止条件。这样既能减少主线程的上下文污染，也能防止能力更小的 worker 在执行过程中偷偷重新定义问题。
@@ -24,6 +26,8 @@ Luna Max：检查 / 分析 / 实现 / 排查 / 回传
 [![DeepSWE v1.1 成本榜：Luna Max 得分 67%，平均成本 0.61 美元](docs/assets/deepswe-v1.1-cost-leaderboard.png)](https://deepswe.datacurve.ai/)
 
 低成本 worker 也有代价。Luna 不适合直接承担模糊目标、持续变化的需求、全局架构判断，或者需要在执行中不断发现真实边界的任务。[`sol-luna-workflow` Skill](skills/sol-luna-workflow/SKILL.md) 的作用，就是把这个限制变成明确流程：Sol 先把模糊问题压缩成边界清晰的执行包，Luna 完成执行，最后由 Sol 检查和整合。
+
+这是一套已经选定的默认拓扑，不需要为每个任务重新做一次模型选型。子任务满足委派合同后，Sol 可以直接调用具名的 Luna Max worker，无需重新比较 Luna Medium、Terra 或其他档位，也无需再次询问用户。例外来自任务结构本身：目标模糊、共享可变状态、写入范围重叠，或者动作没有获得授权。
 
 并行只是可选手段。只有上下文彼此独立、写入范围不重叠时才有价值。顺序依赖、共享状态、架构与最终判断、发版和其他外部副作用，默认仍留在 Sol，除非用户对某个更窄的动作给出明确授权。
 
@@ -88,6 +92,8 @@ bash scripts/install.sh
 
 把相同内容写入 `~/.codex/AGENTS.md`，可以为 Codex 会话提供近似的全局规则，但它不完全等价于 App 个性化提示词，而且项目级指令仍可能覆盖它。安装脚本因此不会碰这两个入口。若目标是让 Codex App 的账号级个性化生效，目前仍需要人工粘贴。
 
+如果旧版个性化提示词仍然提到 `gpt-5-6-best-practice`，请用 [`personalization.md`](personalization.md) 中的当前版本完整替换。安装脚本会保留其他 Skill，不会自动删除旧副本。
+
 ## Luna 执行包
 
 Sol 只向 worker 提供完成任务所需的事实：
@@ -104,16 +110,6 @@ Sol 只向 worker 提供完成任务所需的事实：
 ```
 
 任务无法在执行包内完成时，Luna 应回传准确阻塞点，而不是自行扩大范围。Sol 检查交接结果，并继续承担最终项目判断。
-
-## 可选 Fast 模式
-
-默认 Agent 没有开启 Fast。需要更低延迟时，可以在 [`agents/luna-worker.toml`](agents/luna-worker.toml) 中加入：
-
-```toml
-service_tier = "fast"
-```
-
-Fast 是延迟选择，可能消耗额度或带来价格溢价，也不保证所有使用界面都支持，因此不能把它描述成必然省成本的设置。
 
 ## 只验证一次
 
