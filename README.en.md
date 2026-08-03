@@ -1,109 +1,30 @@
-# Sol + Luna workflow for Codex
+<div align="center">
+  <h1>Sol + Luna Codex Workflow</h1>
+  <p><strong>Sol owns objectives and judgment. Luna Max executes bounded subtasks.</strong></p>
+  <p>An agent-deployable Codex orchestration package with first-principles limits on over-programming and over-testing.</p>
+  <p>
+    <a href="README.md">简体中文</a> ·
+    <strong>English</strong> ·
+    <a href="CHANGELOG.md">Changelog</a>
+  </p>
+  <p>
+    <a href="https://github.com/liuyejinghong/sol-luna-codex-workflow/tags"><img src="https://img.shields.io/github/v/tag/liuyejinghong/sol-luna-codex-workflow?label=version" alt="Version"></a>
+    <a href="https://github.com/liuyejinghong/sol-luna-codex-workflow/stargazers"><img src="https://img.shields.io/github/stars/liuyejinghong/sol-luna-codex-workflow?style=flat" alt="GitHub Stars"></a>
+  </p>
+</div>
 
-**Sol owns ambiguity. Luna Max owns bounded execution. First-principles constraints keep verification subordinate to the result.**
+## Quickstart
 
-This repository is both a human-readable workflow and an agent-deployable package for Codex. GPT-5.6 Sol stays in the main thread to understand the objective, split work, resolve tradeoffs, review results, and integrate the final answer. A named GPT-5.6 Luna Max worker handles code review, module analysis, independent implementation, test diagnosis, and other tasks that can be expressed as a closed execution package.
-
-[简体中文](README.md)
-
-```text
-Sol lead: objective -> boundaries -> task packet -> review -> integration
-                                      |
-                                      v
-Luna Max worker: inspect / analyze / implement / diagnose / report
-```
-
-## Where the orchestration lives
-
-The decomposition logic belongs to the Skill, not the worker profile. Each layer has one responsibility:
-
-| Layer | Responsibility |
-|---|---|
-| [`personalization.md`](personalization.md) | Activates the preference in Codex App and tells Sol when to use the workflow |
-| [`sol-luna-workflow`](skills/sol-luna-workflow/SKILL.md) | Defines Sol's decomposition test, routing decision, worker packet, write isolation, verification, review, and integration |
-| [`luna-worker.toml`](agents/luna-worker.toml) | Pins the Luna Max execution lane and prevents the worker from redefining or expanding its assignment |
-
-`SKILL.md` remains in English as the single model-facing execution contract, avoiding drift between two translated rule sets. The Skill's language does not set the conversation language; the Agent still follows the user and project `AGENTS.md` language requirements.
-
-Sol first locks the parent objective, invariant facts, acceptance criteria, and authorization boundary. It keeps ambiguous or cross-cutting decisions, then creates worker units only around outcomes that are independently completable, objectively reviewable, and owned by non-overlapping paths. Luna executes those units; Sol compares the returned evidence with the parent contract and integrates the result.
-
-This is a community workflow, not an official OpenAI preset. Model availability, routing, and effective permissions vary by Codex version and account. The checked-in custom-agent shape was compared with the official [Codex subagent documentation](https://developers.openai.com/codex/agent-configuration/subagents) and configuration schema on 2026-08-02, then parsed and loaded with Codex App `26.727.51351` and its bundled CLI `0.146.0-alpha.9.2`. The effective model route still needs one runtime check after installation.
-
-## Why this orchestration
-
-The lead and worker have different jobs. Sol retains the full objective and the ambiguous decisions that need broad context. Luna receives a compact packet with one objective, owned paths, non-goals, acceptance criteria, verification, and a stop condition. This reduces main-thread context pollution while preventing a smaller worker from silently redefining the problem.
-
-The current [DeepSWE v1.1 cost leaderboard](https://deepswe.datacurve.ai/) illustrates why Luna Max is attractive for the worker lane. On the snapshot updated July 25, 2026, Luna Max scored 67% at an average reported cost of $0.61 per task. That is an unusually strong cost/result position on this benchmark, not proof that Luna Max is universally best for every repository or task.
-
-[![DeepSWE v1.1 cost leaderboard showing Luna Max at 67% and $0.61 average cost](docs/assets/deepswe-v1.1-cost-leaderboard.png)](https://deepswe.datacurve.ai/)
-
-The low-cost worker lane has a tradeoff. Luna is less suitable for vague objectives, changing requirements, broad architectural judgment, or tasks whose real boundary must be discovered during execution. The [`sol-luna-workflow` skill](skills/sol-luna-workflow/SKILL.md) exists to make that tradeoff explicit: Sol converts ambiguity into a bounded worker packet, Luna executes it, and Sol checks and integrates the result.
-
-This is a chosen default topology, not a model-selection exercise repeated for every task. When a subtask satisfies the delegation contract, Sol can dispatch the named Luna Max worker without comparing Luna Medium, Terra, or another tier and without asking for fresh approval. The exceptions come from task structure: ambiguity, shared mutable state, overlapping writes, or authority that was never delegated.
-
-Parallelism is optional. It is useful only when contexts are independent and write ownership does not overlap. Sequential work, shared mutable state, architecture, final judgment, releases, and other externally consequential actions remain with Sol unless the user explicitly authorizes a narrower handoff.
-
-## Observed workload
-
-This is my live Codex model usage. It makes the token workload split between Luna and Sol visible after adopting this working pattern. The feed covers my account-wide activity, so it is useful as observed workload evidence but should not be read as proof that every Luna token was triggered by this repository.
-
-[![liuyejinghong Codex token usage](https://tokens.ci/api/embed/liuyejinghong/svg?tokens=compact&cost=compact)](https://tokens.ci/u/liuyejinghong)
-
-## The first-principles guardrail
-
-Many engineering Skills improve consistency by prescribing a workflow: write the spec first, require TDD, or run a fixed review sequence. Those methods are not inherently wrong, and they can be valuable when models are less capable or teams need uniform execution. As abstraction, reasoning, and tool use improve, however, heavy process constraints can become the task itself. The model starts creating abstractions, tests, reviewers, and tools to satisfy the process, producing over-programming and over-testing.
-
-This repository does not require TDD, spec-first development, or a fixed number of review passes. It constrains the way decisions are made: establish the final objective, invariant facts, minimum acceptance criteria, and authorization boundary, then choose the shortest direct path that can be verified. TDD, specs, and extra tooling remain available when they demonstrably protect a concrete risk in the current task.
-
-The approach was shaped by a real retrospective in which a small task ran for more than five hours: roughly forty minutes changed the intended behavior, while most of the remaining time went into refining tests, building validation tools, finding defects in those tools, and validating the repairs.
-
-The lesson is not “test less.” It is that code, tests, and toolchains must all justify themselves against the business result. Before adding a test, gate, dry run, reviewer, or tool, the workflow asks three questions:
-
-```text
-What concrete irreversible risk does this protect?
-What decision changes if it fails?
-Why is the existing cheaper evidence insufficient?
-```
-
-The default verification contract is one focused contract check plus one real-path result check. If verification costs more than the implementation, or two consecutive steps only repair the validation/tooling layer without adding facts about the original objective, stop expanding the toolchain and return to the root problem.
-
-## Repository contents
-
-| Path | Purpose |
-|---|---|
-| [`agents/luna-worker.toml`](agents/luna-worker.toml) | Named Luna Max worker profile |
-| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | Sol decomposition, delegation, review, integration, and verification policy |
-| [`personalization.md`](personalization.md) | English and Chinese text to paste into Codex App personalization |
-| [`scripts/install.sh`](scripts/install.sh) | Conflict-safe installer for the agent and skill |
-| [`AGENTS.md`](AGENTS.md) | Deployment contract for an Agent reading this repository |
-| [`VERSION`](VERSION) | Current semantic version |
-| [`CHANGELOG.md`](CHANGELOG.md) | Concise release history |
-
-`VERSION` is the single source of truth for the current version. Release tags use `vX.Y.Z`, and every release updates [`CHANGELOG.md`](CHANGELOG.md).
-
-## Give this repository to an Agent
-
-Send the repository URL and this instruction to a Codex Agent:
+The recommended path is to give the repository directly to Codex. Its `AGENTS.md` limits the installation scope, and the installer refuses to overwrite different content.
 
 ```text
 Install https://github.com/liuyejinghong/sol-luna-codex-workflow for my Codex user profile.
-Follow the repository AGENTS.md. Preserve every existing Codex configuration file,
-do not overwrite conflicts, verify the installed agent and skill, and report the
-manual Codex App personalization step.
+Read and follow the repository AGENTS.md first. Preserve my existing Codex configuration
+and do not overwrite conflicts. Verify luna_worker and the sol-luna-workflow Skill after
+installation, then tell me which manual steps remain.
 ```
 
-The repository contract permits the installing Agent to add only these two targets:
-
-```text
-~/.codex/agents/luna-worker.toml
-~/.agents/skills/sol-luna-workflow/SKILL.md
-```
-
-The agent stays in Codex's custom-agent directory, while the Skill uses the current official user Skill path. If either target already exists with different content, the installer exits before writing either file. It does not edit `config.toml`, other agents or skills, the global `~/.codex/AGENTS.md`, or Codex App account settings.
-
-If the legacy `~/.codex/skills/sol-luna-workflow/SKILL.md` exists, the installer migrates it only when it exactly matches the repository and is not a symbolic link. Different content is treated as a conflict and is never overwritten or removed automatically.
-
-## Install it yourself
+You can also install it yourself:
 
 ```bash
 git clone https://github.com/liuyejinghong/sol-luna-codex-workflow.git
@@ -111,19 +32,42 @@ cd sol-luna-codex-workflow
 bash scripts/install.sh
 ```
 
-The agent honors `CODEX_HOME` when it is set and otherwise uses `~/.codex`. The Skill always installs to the official user directory `~/.agents/skills`. Re-running the installer with identical files is safe.
+The installer writes:
 
-Then open Codex App **Settings → Personalization → Custom Instructions** and paste one complete language block from [`personalization.md`](personalization.md). Start a new task to test the workflow. A full restart is normally unnecessary for a personalization edit; reopen Codex only if the newly added custom agent is not discovered.
+```text
+~/.codex/agents/luna-worker.toml
+~/.agents/skills/sol-luna-workflow/SKILL.md
+```
 
-## Personalization is a manual step
+Then open Codex App **Settings → Personalization → Custom Instructions** and paste one complete language block from [`personalization.md`](personalization.md). This step is manual: a GitHub file or `AGENTS.md` cannot replace the App's account-level personalization setting. A restart is normally unnecessary; start a new task to verify the workflow.
 
-`personalization.md` is documentation, not an active setting. Keeping it in GitHub does not make it equivalent to text pasted into Codex App. OpenAI describes Custom Instructions as an account/UI preference applied through Settings, while `AGENTS.md` belongs to the Codex instruction chain loaded for a run. They overlap in purpose but are different configuration surfaces. See the official [Custom Instructions documentation](https://help.openai.com/en/articles/8096356-chat-preferences-for-chatgpt) and [Codex `AGENTS.md` guide](https://developers.openai.com/codex/guides/agents-md).
+## How it works
 
-It is possible to place similar text in `~/.codex/AGENTS.md` for Codex-only sessions, but that is not exactly equivalent to App personalization and project instructions can override it. The installer intentionally leaves both surfaces untouched. Manual paste is therefore required when account-wide App personalization is the intended behavior.
+```mermaid
+flowchart LR
+    U["User objective"] --> S["Sol<br/>understand, bound, decompose"]
+    S -->|"bounded task packet"| L["Luna Max<br/>review, analyze, implement, diagnose"]
+    L -->|"result and evidence"| S
+    S --> O["review, integrate, deliver"]
+```
 
-## Delegation packet
+Sol stays in the main thread with the full objective and cross-task context. It owns ambiguity, tradeoffs, architecture, decomposition, and final acceptance. Luna Max receives only independently completable, objectively reviewable packets with explicit write ownership. It cannot redefine the parent objective or expand its own scope.
 
-Sol sends only the facts necessary for the worker to finish:
+The user does not need to request a subagent every time. Sol may dispatch `luna_worker` when the task satisfies the delegation contract; for tiny tasks where handoff costs more than execution, Sol completes the work directly.
+
+| Delegate to Luna Max | Keep with Sol |
+|---|---|
+| Read-only code review | Ambiguous or changing requirements |
+| Single-module analysis | Architecture and priority decisions |
+| Implementation with isolated ownership | Shared state or overlapping writes |
+| Focused test diagnosis | Cross-task integration and final judgment |
+| Structured information extraction | Releases, accounts, and external side effects |
+
+Parallelism is optional. Use it only when subtasks are independent, context can be compressed, and write ownership does not overlap. Otherwise run the work sequentially.
+
+## What Luna receives
+
+Sol performs the decomposition; Luna does not discover its own assignment. A worker packet contains:
 
 ```text
 Objective:
@@ -136,13 +80,63 @@ Stop condition:
 Return format:
 ```
 
-If the task cannot be completed inside that packet, Luna reports the exact blocker instead of widening scope. Sol inspects the handoff and remains responsible for the project decision.
+If the packet is insufficient, Luna reports the exact blocker. Sol checks the evidence against the parent objective, resolves conflicts, and integrates the output.
 
-## Verify once
+## Why Sol + Luna Max
 
-Use a small read-only task with an obvious answer and ask Sol to delegate it to `luna_worker`. When the client exposes subagent metadata, confirm `gpt-5.6-luna`, `max` reasoning effort, the expected bounded result, and no unrelated writes. A model's textual self-identification is not route evidence. Repeat the check after a major client update or an observed routing change.
+The lead and worker carry different kinds of context. Sol retains goals, constraints, and judgment. Luna receives only the current execution packet. This reduces main-thread context pollution and prevents a smaller model from reinterpreting an ambiguous assignment.
 
-## Official references
+The [DeepSWE v1.1 cost leaderboard](https://deepswe.datacurve.ai/) provides one public reference for choosing Luna Max. In the snapshot updated July 25, 2026, Luna Max scored 67% at an average reported cost of $0.61 per task, showing a strong cost/result balance on that benchmark. This is one benchmark, not proof that Luna Max is universally best.
+
+[![Luna Max on the DeepSWE v1.1 cost leaderboard](docs/assets/deepswe-v1.1-cost-leaderboard.png)](https://deepswe.datacurve.ai/)
+
+The topology does not assume that Luna can handle every task. Sol first absorbs ambiguity, then hands over a complete and reviewable outcome unit. Once a task meets that delegation contract, Sol uses the named `luna_worker` without repeating model-tier selection.
+
+## Constrain decisions, not the workflow
+
+Many engineering Skills improve consistency through spec-first development, TDD, or fixed review sequences. Those methods are not inherently wrong. As model abstraction, reasoning, and tool use improve, however, a heavy process can become the task itself: the model creates more abstractions, tests, reviewers, and tools to satisfy the workflow while moving away from the original problem.
+
+This repository does not mandate a development process. It requires the agent to establish the final objective, invariant facts, minimum acceptance criteria, and authorization boundary, then choose the shortest direct path that can be verified. TDD, specs, and extra tools remain available, but they must first answer:
+
+```text
+What concrete irreversible risk does this protect?
+What decision changes if it fails?
+Why is the existing cheaper evidence insufficient?
+```
+
+The constraint came from a real retrospective: a small task ran for more than five hours, while roughly forty minutes changed the intended behavior. Most of the remaining time expanded tests and validation tools, then repaired problems created by those tools. The default is therefore one focused contract check plus one real-path result check. If verification starts serving only the verification layer, return to the original objective.
+
+## Observed usage
+
+This is my live Codex model usage. It shows the token split between Sol and Luna after adopting this working pattern. The feed covers my account-wide activity, so it does not prove that every Luna token was triggered by this repository.
+
+[![liuyejinghong Codex token usage](https://tokens.ci/api/embed/liuyejinghong/svg?tokens=compact&cost=compact)](https://tokens.ci/u/liuyejinghong)
+
+## Configuration map
+
+Decomposition belongs to the Skill, not the worker profile. Each layer has one responsibility:
+
+| File | Responsibility |
+|---|---|
+| [`personalization.md`](personalization.md) | Tells Codex when to use this working pattern |
+| [`skills/sol-luna-workflow/SKILL.md`](skills/sol-luna-workflow/SKILL.md) | Defines Sol's decomposition, delegation, isolation, review, and integration |
+| [`agents/luna-worker.toml`](agents/luna-worker.toml) | Pins the Luna Max worker and bounds its execution |
+| [`scripts/install.sh`](scripts/install.sh) | Performs safe installation and legacy-path migration |
+| [`AGENTS.md`](AGENTS.md) | Defines the installing Agent's authorization contract |
+| [`VERSION`](VERSION) | Records the current semantic version |
+| [`CHANGELOG.md`](CHANGELOG.md) | Records concise release history |
+
+`SKILL.md` remains in English as the single model-facing execution contract, avoiding drift between translated rule sets. Its language does not determine the conversation language; the Agent still follows the user and project `AGENTS.md`.
+
+## Installation safety and compatibility
+
+The installer preflights the Agent target, current Skill path, and legacy Skill path. If any location contains different content, it exits before writing. It does not modify `config.toml`, other agents or Skills, global `~/.codex/AGENTS.md`, or Codex App settings.
+
+The legacy `~/.codex/skills/sol-luna-workflow/SKILL.md` is migrated only when it exactly matches the repository and neither it nor its directory is a symbolic link. When `CODEX_HOME` is set, the Agent uses that directory; the Skill still installs to the official user path at `~/.agents/skills`.
+
+This is a community workflow, not an official OpenAI preset. Model availability, routing, and permissions depend on the Codex version and account. After installation, delegate one small read-only task with an obvious answer. Confirm that subagent metadata reports `gpt-5.6-luna` with `max` effort and that the result stays in scope. Textual self-identification is not routing evidence.
+
+## References
 
 | Topic | Source |
 |---|---|
