@@ -43,9 +43,19 @@ This is a chosen default topology, not a model-selection exercise repeated for e
 
 Parallelism is optional. It is useful only when contexts are independent and write ownership does not overlap. Sequential work, shared mutable state, architecture, final judgment, releases, and other externally consequential actions remain with Sol unless the user explicitly authorizes a narrower handoff.
 
+## Observed workload
+
+This is my live Codex model usage. It makes the token workload split between Luna and Sol visible after adopting this working pattern. The feed covers my account-wide activity, so it is useful as observed workload evidence but should not be read as proof that every Luna token was triggered by this repository.
+
+[![liuyejinghong Codex token usage](https://tokens.ci/api/embed/liuyejinghong/svg?tokens=compact&cost=compact)](https://tokens.ci/u/liuyejinghong)
+
 ## The first-principles guardrail
 
-More capable models can generate useful abstractions, tests, reviewers, and tools, but the same ability can expand the self-review boundary far beyond the original task. The workflow was shaped by a real retrospective in which a small task ran for more than five hours: roughly forty minutes changed the intended behavior, while most of the remaining time went into refining tests, building validation tools, finding defects in those tools, and validating the repairs.
+Many engineering Skills improve consistency by prescribing a workflow: write the spec first, require TDD, or run a fixed review sequence. Those methods are not inherently wrong, and they can be valuable when models are less capable or teams need uniform execution. As abstraction, reasoning, and tool use improve, however, heavy process constraints can become the task itself. The model starts creating abstractions, tests, reviewers, and tools to satisfy the process, producing over-programming and over-testing.
+
+This repository does not require TDD, spec-first development, or a fixed number of review passes. It constrains the way decisions are made: establish the final objective, invariant facts, minimum acceptance criteria, and authorization boundary, then choose the shortest direct path that can be verified. TDD, specs, and extra tooling remain available when they demonstrably protect a concrete risk in the current task.
+
+The approach was shaped by a real retrospective in which a small task ran for more than five hours: roughly forty minutes changed the intended behavior, while most of the remaining time went into refining tests, building validation tools, finding defects in those tools, and validating the repairs.
 
 The lesson is not “test less.” It is that code, tests, and toolchains must all justify themselves against the business result. Before adding a test, gate, dry run, reviewer, or tool, the workflow asks three questions:
 
@@ -66,6 +76,10 @@ The default verification contract is one focused contract check plus one real-pa
 | [`personalization.md`](personalization.md) | English and Chinese text to paste into Codex App personalization |
 | [`scripts/install.sh`](scripts/install.sh) | Conflict-safe installer for the agent and skill |
 | [`AGENTS.md`](AGENTS.md) | Deployment contract for an Agent reading this repository |
+| [`VERSION`](VERSION) | Current semantic version |
+| [`CHANGELOG.md`](CHANGELOG.md) | Concise release history |
+
+`VERSION` is the single source of truth for the current version. Release tags use `vX.Y.Z`, and every release updates [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Give this repository to an Agent
 
@@ -82,10 +96,12 @@ The repository contract permits the installing Agent to add only these two targe
 
 ```text
 ~/.codex/agents/luna-worker.toml
-~/.codex/skills/sol-luna-workflow/SKILL.md
+~/.agents/skills/sol-luna-workflow/SKILL.md
 ```
 
-If either target already exists with different content, the installer exits before writing either file. It does not edit `config.toml`, other agents or skills, the global `~/.codex/AGENTS.md`, or Codex App account settings.
+The agent stays in Codex's custom-agent directory, while the Skill uses the current official user Skill path. If either target already exists with different content, the installer exits before writing either file. It does not edit `config.toml`, other agents or skills, the global `~/.codex/AGENTS.md`, or Codex App account settings.
+
+If the legacy `~/.codex/skills/sol-luna-workflow/SKILL.md` exists, the installer migrates it only when it exactly matches the repository and is not a symbolic link. Different content is treated as a conflict and is never overwritten or removed automatically.
 
 ## Install it yourself
 
@@ -95,7 +111,7 @@ cd sol-luna-codex-workflow
 bash scripts/install.sh
 ```
 
-The installer honors `CODEX_HOME` when it is set and otherwise uses `~/.codex`. Re-running it with identical files is safe.
+The agent honors `CODEX_HOME` when it is set and otherwise uses `~/.codex`. The Skill always installs to the official user directory `~/.agents/skills`. Re-running the installer with identical files is safe.
 
 Then open Codex App **Settings → Personalization → Custom Instructions** and paste one complete language block from [`personalization.md`](personalization.md). Start a new task to test the workflow. A full restart is normally unnecessary for a personalization edit; reopen Codex only if the newly added custom agent is not discovered.
 
@@ -131,6 +147,7 @@ Use a small read-only task with an obvious answer and ask Sol to delegate it to 
 | Topic | Source |
 |---|---|
 | Codex subagents and custom agents | [OpenAI Developers](https://developers.openai.com/codex/agent-configuration/subagents) |
+| Codex Skills and discovery paths | [OpenAI Developers](https://developers.openai.com/codex/skills) |
 | Codex instruction discovery | [OpenAI Developers](https://developers.openai.com/codex/guides/agents-md) |
 | Custom Instructions | [OpenAI Help Center](https://help.openai.com/en/articles/8096356-chat-preferences-for-chatgpt) |
 | Codex configuration schema | [OpenAI Developers](https://developers.openai.com/codex/config-schema.json) |

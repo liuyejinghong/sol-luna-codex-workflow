@@ -6,22 +6,24 @@ This repository is designed to be handed directly to a Codex Agent for installat
 
 Install the checked-in `luna_worker` custom agent and `sol-luna-workflow` skill for the current user while preserving every unrelated Codex setting.
 
-## Authorized writes
+## Authorized changes
 
-The installation may create only these targets under the active Codex home:
+The installation may create only these targets:
 
 ```text
-agents/luna-worker.toml
-skills/sol-luna-workflow/SKILL.md
+${CODEX_HOME:-$HOME/.codex}/agents/luna-worker.toml
+$HOME/.agents/skills/sol-luna-workflow/SKILL.md
 ```
 
-Use `$CODEX_HOME` when it is set; otherwise use `$HOME/.codex`. Run `bash scripts/install.sh` from this repository. Do not reproduce the copy logic with broader commands.
+The installer may remove `$CODEX_HOME/skills/sol-luna-workflow/SKILL.md` (or `$HOME/.codex/skills/...` when `CODEX_HOME` is unset) only when that legacy file exactly matches the repository source and neither the file nor its directory is a symbolic link. This is a path migration, not authorization to delete other legacy Skills.
+
+Use `$CODEX_HOME` for the Agent when it is set; otherwise use `$HOME/.codex`. User-authored Skills use `$HOME/.agents/skills`. Run `bash scripts/install.sh` from this repository. Do not reproduce the copy or migration logic with broader commands.
 
 ## Prohibited changes
 
 Do not edit or delete `config.toml`, other agents, other skills, global or project `AGENTS.md` files, Codex App personalization, or any unrelated content.
 
-If either target already exists with different content, stop without writing either target. Show the exact conflicting path and ask the user how to proceed. Never overwrite a conflict automatically.
+If either target or the legacy Skill exists with different content, stop before changing anything. Show the exact conflicting path and ask the user how to proceed. Never overwrite or remove a conflict automatically.
 
 ## Verification and handoff
 

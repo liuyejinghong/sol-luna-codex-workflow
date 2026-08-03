@@ -43,9 +43,19 @@ Sol 先锁定整体目标、不可变事实、验收标准和授权边界，把�
 
 并行只是可选手段。只有上下文彼此独立、写入范围不重叠时才有价值。顺序依赖、共享状态、架构与最终判断、发版和其他外部副作用，默认仍留在 Sol，除非用户对某个更窄的动作给出明确授权。
 
+## 实际工作量
+
+下面是我在 Codex 中的实时模型用量。它可以直观看到启用这套工作方式后，Luna 与 Sol 各自承担了多少 token 工作量。数据来自我的账号总体使用记录，因此适合观察实际分工，不应被解释为每一个 Luna token 都由本仓库触发。
+
+[![liuyejinghong 的 Codex token 使用情况](https://tokens.ci/api/embed/liuyejinghong/svg?tokens=compact&cost=compact)](https://tokens.ci/u/liuyejinghong)
+
 ## 第一性原理红线
 
-模型能力越强，越容易生成抽象、测试、审查器和工具；同一种能力也可能让“自审自测”的边界远远超过原始任务。这个工作流来自一次真实复盘：一个很小的任务持续了五个多小时，其中真正改变目标行为的工作大约只有四十分钟，其余大部分时间都耗在打磨测试、建设验证工具、修复工具自身瑕疵，再验证这些修复。
+许多工程 Skill 通过规定流程来提高稳定性，例如先写 spec、强制 TDD 或固定多轮审查。这些方法本身没有问题，在模型能力有限、团队需要统一动作时也很有价值。但随着模型的抽象、推理和工具能力增强，过重的流程约束也可能反过来成为任务目标：模型开始为了完成流程而制造更多抽象、测试、审查器和工具，最终出现过度编程和过度测试。
+
+这个仓库不规定必须采用 TDD、必须先写 spec，也不规定固定的审查轮次。它约束的是工作方式：先明确最终目标、不可变事实、最小验收标准和授权边界，再选择最短、最直接、可验证的路径。TDD、spec 和额外工具仍然可以使用，但必须先证明它们直接保护本次任务的具体风险。
+
+这个思路来自一次真实复盘：一个很小的任务持续了五个多小时，其中真正改变目标行为的工作大约只有四十分钟，其余大部分时间都耗在打磨测试、建设验证工具、修复工具自身瑕疵，再验证这些修复。
 
 结论不是“少测试”，而是代码、测试和工具链都必须用业务结果证明自己的必要性。增加任何测试、gate、dry-run、审查或工具前，都要先回答三个问题：
 
@@ -66,6 +76,10 @@ Sol 先锁定整体目标、不可变事实、验收标准和授权边界，把�
 | [`personalization.md`](personalization.md) | 供人工粘贴到 Codex App 的中英文个性化提示词 |
 | [`scripts/install.sh`](scripts/install.sh) | 遇到冲突不覆盖的安全安装脚本 |
 | [`AGENTS.md`](AGENTS.md) | Agent 读取这个仓库时遵循的部署合同 |
+| [`VERSION`](VERSION) | 当前语义化版本号 |
+| [`CHANGELOG.md`](CHANGELOG.md) | 简明版本更新记录 |
+
+`VERSION` 是当前版本的单一事实来源，发布 tag 使用 `vX.Y.Z`，每次发布同步更新 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 直接把仓库交给 Agent
 
@@ -81,10 +95,12 @@ Sol 先锁定整体目标、不可变事实、验收标准和授权边界，把�
 
 ```text
 ~/.codex/agents/luna-worker.toml
-~/.codex/skills/sol-luna-workflow/SKILL.md
+~/.agents/skills/sol-luna-workflow/SKILL.md
 ```
 
-如果任一目标已经存在且内容不同，安装脚本会在写入任何文件之前退出。它不会修改 `config.toml`、其他 Agent 或 Skill、全局 `~/.codex/AGENTS.md`，也不会修改 Codex App 的账号设置。
+Agent 继续使用 Codex 的自定义 Agent 路径；Skill 使用官方当前推荐的用户级路径。如果任一目标已经存在且内容不同，安装脚本会在写入任何文件之前退出。它不会修改 `config.toml`、其他 Agent 或 Skill、全局 `~/.codex/AGENTS.md`，也不会修改 Codex App 的账号设置。
+
+如果旧路径 `~/.codex/skills/sol-luna-workflow/SKILL.md` 存在，安装器只会在它与仓库版本完全一致且不是符号链接时，将其迁移到新路径并删除旧副本。不同内容会被视为冲突，不会自动覆盖或删除。
 
 ## 自己安装
 
@@ -94,7 +110,7 @@ cd sol-luna-codex-workflow
 bash scripts/install.sh
 ```
 
-如果设置了 `CODEX_HOME`，安装脚本会使用它；否则使用 `~/.codex`。文件内容相同时可以安全重复执行。
+如果设置了 `CODEX_HOME`，Agent 会安装到该目录；否则使用 `~/.codex`。Skill 始终安装到官方用户目录 `~/.agents/skills`。文件内容相同时可以安全重复执行。
 
 然后打开 Codex App 的「设置 → 个性化 → 自定义指令」，从 [`personalization.md`](personalization.md) 中选择一种语言，完整粘贴对应代码块。新建一个任务测试工作流。修改个性化提示词通常不需要重启；只有新 Agent 没有被发现时，才需要重开 Codex 再试。
 
@@ -130,6 +146,7 @@ Sol 只向 worker 提供完成任务所需的事实：
 | 主题 | 来源 |
 |---|---|
 | Codex 子代理和自定义 Agent | [OpenAI Developers](https://developers.openai.com/codex/agent-configuration/subagents) |
+| Codex Skills 与发现路径 | [OpenAI Developers](https://developers.openai.com/codex/skills) |
 | Codex 指令发现顺序 | [OpenAI Developers](https://developers.openai.com/codex/guides/agents-md) |
 | Custom Instructions | [OpenAI Help Center](https://help.openai.com/en/articles/8096356-chat-preferences-for-chatgpt) |
 | Codex 配置 Schema | [OpenAI Developers](https://developers.openai.com/codex/config-schema.json) |
